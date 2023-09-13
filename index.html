@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Member Evaluation</title>
+    <style>
+        body {
+            padding: 10%;
+        }
+        fieldset {
+            margin: 20px 0;
+            padding: 10px;
+        }
+
+        .option {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Team Member Evaluation</h2>
+    <p>
+        This is aimed at Software Engineers and DevOps Engineers. It is a tool to help you evaluate your team members and provide them with feedback. It is not meant to be a replacement for regular 1:1s and other feedback mechanisms. It is meant to be used as a starting point for a conversation.
+    </p>
+    <form id="evaluationForm"></form>
+
+    <button type="button" onclick="calculateScore()">Submit</button>
+    <h3>Total Score:</h3>
+    <p id="totalScore">0</p>
+    <div id="feedbackText"></div>
+    <script>
+        const sections = {
+            "Skills/Knowledge Level": [
+                "How competent is the individual in their domain?",//1
+                "Do they display an understanding of the necessary tools, techniques, and methodologies?"//2
+            ],
+            
+            "Engagement & Commitment": [
+                "How invested is the individual in their tasks and the team's goals?",//3
+                "Do they show initiative and motivation?"//4
+            ],
+            
+            "Team Collaboration & Helpfulness": [
+                "How well do they work with others?",//5
+                "Are they open to giving or seeking help when needed?"//6
+            ],
+            
+            "Communication Skills": [
+                "How effective are they in conveying ideas, providing updates, and seeking clarifications?",//7
+                "Do they communicate in a timely manner?"//8
+            ],
+
+            "Focus on Primary Goals vs. Minor Details":[
+                "Do they maintain a balance between achieving overarching objectives and paying attention to details?",//9
+                "Are they prone to getting sidetracked by minutiae?"//10
+            ],
+
+            "Problem-solving & Innovation": [
+                "How do they approach challenges?",//11
+                "Are they proactive in suggesting improvements or novel solutions?"//12
+            ],
+            
+            "Adaptability & Flexibility":[
+                            "How well do they adapt to changes or unexpected challenges?",
+                            "Are they open to feedback and willing to pivot when needed?"
+                        ],
+
+            "Time Management & Productivity":[
+                            "How efficient are they in completing tasks within deadlines?",
+                            "Do they prioritize work effectively?"
+                        ],
+
+
+            "Professionalism & Work Ethics":[
+                            "How do they handle responsibilities, confidentiality, and represent the team or company?",
+                            "Do they adhere to the team's or company's values and standards?"
+                        ],
+
+
+            "Personal Growth & Development": [
+                "Are they invested in continuous learning and improvement?",
+                "How receptive are they to feedback, and how do they apply it for their growth?"
+            ],
+            
+        };
+
+        const answers = {
+            "q0_1": "Has displayed gaps in their understanding of key domain concepts. There is room for significant growth in this area.",
+            "q0_2": "Possesses a basic understanding of the domain, aligning with the standard level of competence expected at this stage. Continued professional development in this area would be beneficial.",
+            "q0_3": "Consistently demonstrates a deep understanding and expertise in their domain. They can be considered a subject matter expert and can be relied upon for complex domain-related tasks.",
+            //q2
+            "q1_1": "Has occasionally struggled with the utilization of essential tools and techniques. Training or mentoring in this area would be advantageous.",
+            "q1_2": "Is proficient with most of the standard tools and techniques, though there might be moments of uncertainty. Continued exposure and practice will enhance their capabilities.",
+            "q1_3": "Excels in leveraging the required tools, techniques, and methodologies. Their adeptness contributes positively to the team's efficiency and productivity.",
+            //
+            "q2_1": "Occasionally seems detached from their tasks and the broader objectives of the team. It would be beneficial for them to re-align their focus and enhance their commitment to team outcomes.",
+            "q2_2": "Generally shows dedication to their tasks and has a basic alignment with the team's goals. While they sometimes may require guidance, they typically contribute positively to our collective objectives.",
+            "q2_3": "Consistently showcases a high level of investment in both their personal tasks and the overarching goals of the team. Their commitment acts as a motivational force for other members.",
+            //
+            "q3_1":"Tends to follow directions without proactively seeking opportunities for improvement or taking the lead. Encouraging them to take more initiative could drive more positive outcomes.",
+            "q3_2":"Occasionally steps up and showcases initiative in their roles. While they display adequate motivation, further encouragement can inspire them to become proactive contributors.",
+            "q3_3":"Continually seeks ways to enhance processes and is quick to take the lead when opportunities arise. Their motivation and proactive attitude significantly benefit the team dynamics and outcomes.",
+            //
+            "q4_1":"Has encountered challenges when collaborating with team members. Further development in teamwork and interpersonal skills could enhance their collaborative efforts.",
+            "q4_2":"Collaborates reasonably well with colleagues, maintaining basic team dynamics. While there are moments of effective teamwork, there's potential for a more cohesive collaboration.",
+            "q4_3":"Stands out as a collaborative team player, frequently fostering positive relationships and synergies with colleagues. Their teamwork enhances the overall group dynamic.",
+            //Are they open to giving or seeking help when needed?
+            "q5_1":"Tends to work independently and might benefit from more openly seeking guidance or offering assistance to peers. Promoting an environment of shared knowledge can be valuable.",
+            "q5_2":"Occasionally seeks input from colleagues and offers assistance when asked. While they are open to collaboration, being more proactive in knowledge-sharing can further enhance team performance.",
+            "q5_3":"Consistently demonstrates a willingness to both seek and provide help, promoting a culture of shared learning and mutual support within the team.",
+            //
+            "q6_1":"Often struggles to articulate ideas clearly, which can sometimes lead to misunderstandings. Regular updates and seeking clarifications are areas that could be strengthened.",
+            "q6_2": "Generally conveys ideas with clarity but there are times when further clarification is needed. Provides updates and seeks clarifications when prompted.",
+            "q6_3": "Consistently communicates ideas with clarity and precision, making it easy for team members to understand and align.",
+            // "Do they communicate in a timely manner?"
+            "q7_1": "Responses and communications are occasionally delayed, which can impact team dynamics and project timelines.",
+            "q7_2": "While communication is usually timely, there are instances where a quicker response would benefit the team and the project.",
+            "q7_3": "Actively provides regular updates without needing reminders and is proactive in seeking clarifications when uncertain. Always ensures timely communication, which greatly aids in keeping projects on track and team dynamics positive.",
+            //details
+            "q8_1":"Tends to either get sidetracked by minor details, causing a diversion from primary objectives, or overlooks important nuances that can impact the overall quality. A better balance between seeing the bigger picture and recognizing crucial details is needed.",
+            "q8_2":"Shows an understanding of overarching objectives most of the time but occasionally might overemphasize minor details or miss some subtleties. While they often strike a balance, there are moments when refocusing on the primary goals or paying closer attention to details would be beneficial.",
+            "q8_3":"Effectively balances a clear focus on primary goals while not compromising on essential details. Their ability to discern when to delve into the minutiae and when to concentrate on the larger objective ensures both quality and progress.",            
+            //minutiae
+            "q9_1":"Regularly gets sidetracked by minutiae, often at the expense of the broader goals. This frequent diversion into smaller details impacts the overall progress and effectiveness. A stronger focus on main objectives is necessary.",
+            "q9_2":"Occasionally tends to delve deep into minutiae, which can sometimes delay or divert from the main objectives. While attention to detail is commendable, a better equilibrium between larger goals and smaller details would enhance efficiency.",
+            "q9_3":"Demonstrates an excellent ability to distinguish between primary objectives and minor details. While they acknowledge and attend to necessary minutiae, they consistently maintain focus on overarching goals, ensuring timely and quality results.",
+            //q11
+            "q10_1": "When faced with challenges, there's often a hesitancy or reliance on traditional methods without much exploration of alternatives.",
+            "q10_2": "Generally, they tackle challenges with a positive mindset and occasionally explore outside the conventional methods.",
+            "q10_3": "Consistently exhibits a strategic and analytical approach to challenges, often thinking multiple steps ahead.",
+            //q12 Are they proactive in suggesting improvements or novel solutions?
+            "q11_1": "Proactivity in suggesting improvements or bringing forward innovative solutions is an area that requires more engagement and initiative.",
+            "q11_2": "While they sometimes offer suggestions for improvements, there's potential for a more consistent demonstration of proactive innovation and solution-finding.",
+            "q11_3": "Not only are they reactive to problems, but they're also highly proactive in suggesting improvements, showcasing a keen eye for innovation and forward-thinking solutions.",
+            //q13 "How well do they adapt to changes or unexpected challenges?",
+            "q12_1": "Often exhibit difficulty when faced with unexpected changes or challenges, tending to stick to familiar methods.",
+            "q12_2": "Generally receptive to changes and challenges, though there are instances where they may benefit from a more agile response.",
+            "q12_3": "Demonstrates an impressive ability to swiftly adapt to changes or unexpected challenges, maintaining efficiency and effectiveness in shifting circumstances.",
+            //q14 "Are they open to feedback and willing to pivot when needed?"
+            "q13_1":"When presented with feedback, there's a notable resistance or hesitancy to adjust or pivot, suggesting an area ripe for development.",
+            "q13_2": "While open to feedback, sometimes the implementation or willingness to pivot can be a touch more deliberate than ideal.",
+            "q13_3": "Consistently embraces feedback with an open mind and are willing to pivot promptly, ensuring the best outcomes.",
+
+            //q15: "How efficient are they in completing tasks within deadlines?",
+            "q14_1": "Frequently face challenges in completing tasks within set deadlines, which can impact project timelines.",
+            "q14_1": "Generally meets deadlines but there are instances where more careful planning could enhance their efficiency. ",
+            "q14_1": "Consistently showcases a strong ability to manage time effectively, ensuring tasks are completed within or even ahead of deadlines.",
+            //q16: "Do they prioritize work effectively?"                    
+            "q15_1": "Prioritization of work often leans towards urgency rather than importance, leading to potential bottlenecks and inefficiencies.",
+            "q15_1": "While they show an understanding of work prioritization, refining this skill further would bolster both their productivity and the team's progress.",
+            "q15_1": "Their keen sense of prioritization ensures that the most impactful tasks are addressed first, optimizing productivity and ensuring smooth project progress.",
+            //q17: "How do they handle responsibilities, confidentiality, and represent the team or company?",
+            "q16_1": "There have been instances where handling of responsibilities and confidentiality has not been up to the expected standard, leading to concerns about representation of the team or company. Emphasis on professional boundaries and a better understanding of the company's ethos and expectations would be beneficial.",
+            "q16_2": "Generally reliable in handling responsibilities and maintaining confidentiality, though there are occasional lapses that need attention. They represent the team or company in an acceptable manner, but there's room for improvement in consistently embodying our professional standards.",
+            "q16_3": "Exhibits exemplary professionalism in every aspect, from handling responsibilities to maintaining strict confidentiality. They consistently represent the team or company in a manner that aligns with, and often exceeds, our highest standards, making them a valuable ambassador for our brand.",
+            //q18: "Do they adhere to the team's or company's values and standards?"             
+            "q17_1":"There have been occasions where they have not fully aligned with the team's or company's values and standards. It's crucial for them to familiarize themselves with and consistently embody these principles in their daily conduct.",
+            "q17_2":"While they generally adhere to the team's or company's values and standards, there are moments of inconsistency. A renewed commitment to these principles would enhance their alignment with our organizational ethos.",
+            "q17_3":"Consistently uphold and embody the team's or company's values and standards, serving as a model of professionalism and work ethics. Their commitment is evident in their day-to-day conduct and interactions.",
+             //"Are they invested in continuous learning and improvement?",
+             "q18_1":"They haven't shown a consistent commitment to continuous learning and improvement. While they may occasionally engage in developmental activities, it's essential for them to be more proactive in seeking out opportunities for growth.",
+             "q18_2": "They show an interest in continuous learning and often take steps to improve, though there's potential for more consistent investment in their personal development. With a bit more initiative, they can greatly enhance their growth trajectory.",
+             "q18_3": "They demonstrate a commendable dedication to continuous learning and improvement. Their proactive approach to seeking out and embracing opportunities for personal development is evident, setting a positive example for peers.",
+             //"How receptive are they to feedback, and how do they apply it for their growth?"
+             "q19_1": "Occasionally seem resistant or defensive when receiving feedback, which hinders their ability to fully apply it for personal growth. Embracing feedback more openly and constructively would greatly benefit their development.",
+             "q19_2": "Generally accept feedback and make efforts to act upon it, though there are moments when more reflection or prompt action might enhance their growth. Building on this receptiveness will further their development journey.",
+             "q19_3": "Consistently show an admirable openness to feedback, actively seeking it out and promptly applying the insights for their personal growth. Their dedication to self-improvement through feedback is evident and commendable.",
+            }
+        const options = [
+            { label: "Needs Improvement", value: "1" },
+            { label: "Average", value: "2" },
+            { label: "Good Enough/Well", value: "3" },
+            { label: "Skip", value: "0" }
+        ];
+
+        const form = document.getElementById('evaluationForm');
+
+        let questionIndex = 0;
+        for (const section in sections) {
+            const fieldset = document.createElement('fieldset');
+            const legend = document.createElement('legend');
+            legend.textContent = section;
+            fieldset.appendChild(legend);
+
+            sections[section].forEach(questionText => {
+                const questionDiv = document.createElement('div');
+
+                const questionLabel = document.createElement('label');
+                questionLabel.textContent = questionText;
+                questionDiv.appendChild(questionLabel);
+                questionDiv.appendChild(document.createElement('br'));
+
+                options.forEach(option => {
+                    const optionInput = document.createElement('input');
+                    optionInput.type = 'radio';
+                    optionInput.id = `q${questionIndex}_${option.value}`;
+                    optionInput.name = `q${questionIndex}`;
+                    optionInput.value = option.value;
+
+                    const label = document.createElement('label');
+                    label.setAttribute('for', `q${questionIndex}_${option.value}`);
+                    label.textContent = option.label;
+
+                    if (option.value === "0") {
+                        optionInput.checked = true;
+                    }
+
+                    questionDiv.appendChild(optionInput);
+                    questionDiv.appendChild(label);
+                    questionDiv.appendChild(document.createElement('br'));
+                });
+
+                questionIndex++;
+                fieldset.appendChild(questionDiv);
+            });
+
+            form.appendChild(fieldset);
+        }
+
+        function calculateScore() {
+            let totalScore = 0;
+            let text = "";
+            for (let i = 0; i < questionIndex; i++) {
+                const selectedOption = document.querySelector(`input[name="q${i}"]:checked`);
+                QAnswerScore = selectedOption.value
+                //ceck if we have a skip
+                if (QAnswerScore == 0) {
+                    //skip
+                    continue;
+                }
+                //check in const answers if we have this key
+                key = `q${i}_${QAnswerScore}`
+                
+                console.log(key)
+                if (key in answers) {
+                    //add the answer score
+                    //alert(answers[key])
+                    //concat answer to text
+                    text += "<p>"+answers[key]+"</p>"
+                }
+
+                totalScore += Number(selectedOption.value);
+            }
+            document.getElementById('totalScore').innerText = totalScore;
+            document.getElementById('feedbackText').innerHTML = text;
+        }
+    </script>
+
+</body>
+
+</html>
